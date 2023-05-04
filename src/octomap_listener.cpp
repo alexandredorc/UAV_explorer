@@ -11,7 +11,7 @@ ros::Publisher pub;
 
 void octomapCallback(const octomap_msgs::Octomap::ConstPtr& msg) {
     // Convert OctoMap message to octree
-    ROS_INFO("test callback");
+    //ROS_INFO("test callback");
     octomap::OcTree* octree = dynamic_cast<octomap::OcTree*>(octomap_msgs::fullMsgToMap(*msg));
     
     // Convert octree to occupancy grid
@@ -31,12 +31,13 @@ void octomapCallback(const octomap_msgs::Octomap::ConstPtr& msg) {
     occupancy_grid_msg.info.resolution = resolution;
     occupancy_grid_msg.info.width = width;
     occupancy_grid_msg.info.height = height;
-    occupancy_grid_msg.info.origin.position.x = min_x;
-    occupancy_grid_msg.info.origin.position.y = min_y;
-    occupancy_grid_msg.info.origin.position.z = min_z;
+    occupancy_grid_msg.info.origin.position.x = -min_x/ resolution;
+    occupancy_grid_msg.info.origin.position.y = -min_y/ resolution;
+    occupancy_grid_msg.info.origin.position.z = -min_z/ resolution;
 
     occupancy_grid_msg.data.resize(width * height * depth);
-    ROS_WARN("Size of occupancy grid data: %d", occupancy_grid_msg.data.size());
+
+    //ROS_WARN("Size of occupancy grid data: %d", occupancy_grid_msg.data.size());
 
     for (int z = 0; z < width; z++) {
         for (int y = 0; y < height; y++) {
@@ -83,7 +84,7 @@ int main(int argc, char** argv) {
     ros::Rate loop_rate(10);
 
     while (ros::ok()) {
-        ROS_INFO("test loop");
+        //ROS_INFO("loop test");
         ros::spinOnce();
         loop_rate.sleep();
     }

@@ -99,7 +99,7 @@ if __name__ == '__main__':
     sub = rospy.Subscriber('occupancy_grid', OccupancyGrid, octomap_grid_callback)
 
     # Publish the occupancy grid to a topic
-    pub = rospy.Publisher('occupancy_grid', OccupancyGrid, queue_size=1)
+    pub = rospy.Publisher('frontier', OccupancyGrid, queue_size=1)
 
     loop_rate = rospy.Rate(10)
 
