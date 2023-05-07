@@ -65,6 +65,8 @@ void octomapCallback(const octomap_msgs::Octomap::ConstPtr& msg) {
 
     // Publish message to topic
     pub.publish(occupancy_grid_msg);
+
+    delete octree;
 }
 
 

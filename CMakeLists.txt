@@ -172,7 +172,7 @@ target_link_libraries(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/gazebo_pos.py
-  scripts/octomap.py
+  scripts/frontier_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
