@@ -2,12 +2,16 @@
 # license removed for brevity
 import rospy
 import tf
-import numpy as np
 from gazebo_msgs.msg import ModelState
+from geometry_msgs.msg import Point
 
-from Map import Map
-from Graph import Graph
-from GraphSearch import GraphSearch
+
+class Position:
+	def __init__(self,initial):
+		self.pos=initial
+
+	def update_pose(self,msg):
+		self.pos=[msg.x,msg.y,msg.z]
 
 def gazebo_state(position):
 	gazebo_pub_msgs=ModelState()
@@ -51,54 +55,15 @@ def main():
 
 	rate = rospy.Rate(10) # 10hz
 
-	start_point=[0,0,0]
-	publish_pos(gazebo_pos_pub,start_point)
-	rospy.sleep(3)
-
-	start_point=[0,0,1]
-	publish_pos(gazebo_pos_pub,start_point)
-	rate.sleep()
-
-	start_point=[0,0,2]
-	publish_pos(gazebo_pos_pub,start_point)
-	rate.sleep()
-
-
 	rospy.logwarn("start")
-	map=Map()
-	
-	while(map.OG_map is None):
-		publish_pos(gazebo_pos_pub,start_point)
-		rate.sleep()
+
+	goal=Position([0,0,0.5])
 				
-	rospy.logerr(np.shape(map.OG_map))
-	goal=[-7.25, -16.0, 2.8]
-	start_point=[0,0,2]
-	goal_grid=map.world_to_grid(goal[0],goal[1],goal[2])
-	start_grid=map.world_to_grid(start_point[0],start_point[1],start_point[2])
-	
-	print(map.grid_to_world(16,18,15))
-	
+	rospy.Subscriber("/gazebo_coordinate", Point, goal.update_pose)
 
-	map.update_map()
-	graph = Graph(map)
-	
-	
-
-	graph_search = GraphSearch(graph, start_grid, goal_grid)
-	for node in graph_search.path_:
-		coord=map.grid_to_world(node.x,node.y,node.z)
-		print(node.x, node.y,node.z)
-		rospy.logwarn(coord)
-		publish_pos(gazebo_pos_pub,coord)
-		#rate.sleep()
-		rospy.sleep(1)
-	
-	#publish_pos(gazebo_pos_pub,goal)
-	rate.sleep()
 	while not rospy.is_shutdown():
 		
-		publish_pos(gazebo_pos_pub,goal)
+		publish_pos(gazebo_pos_pub,goal.pos)
 		rate.sleep()
 			
 

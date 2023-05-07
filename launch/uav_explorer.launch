@@ -3,6 +3,7 @@
   <include file="$(find uav_explorer)/launch/octomap.launch"/>
 
   
+  <node pkg="uav_explorer" type="gazebo_pos.py" name="gazebo_pos_node"/>
   
 </launch>
 

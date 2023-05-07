@@ -7,11 +7,18 @@
 
 
 ros::Publisher pub;
-
+bool callbackInProgress = false;
 
 void octomapCallback(const octomap_msgs::Octomap::ConstPtr& msg) {
     // Convert OctoMap message to octree
-    //ROS_INFO("test callback");
+    ROS_INFO("test callback");
+
+    if (callbackInProgress) {
+        return;
+    }
+
+    callbackInProgress = true;
+
     octomap::OcTree* octree = dynamic_cast<octomap::OcTree*>(octomap_msgs::fullMsgToMap(*msg));
     
     // Convert octree to occupancy grid
@@ -25,7 +32,7 @@ void octomapCallback(const octomap_msgs::Octomap::ConstPtr& msg) {
     int width = (max_x - min_x) / resolution;
     int height = (max_y - min_y) / resolution;
     int depth = (max_z - min_z) / resolution;
-
+    ROS_WARN("Size of occupancy grid data: %d %d %d", width,height,depth);
     nav_msgs::OccupancyGrid occupancy_grid_msg;
     occupancy_grid_msg.header.frame_id = "map";
     occupancy_grid_msg.info.resolution = resolution;
@@ -37,27 +44,28 @@ void octomapCallback(const octomap_msgs::Octomap::ConstPtr& msg) {
 
     occupancy_grid_msg.data.resize(width * height * depth);
 
-    //ROS_WARN("Size of occupancy grid data: %d", occupancy_grid_msg.data.size());
+    ROS_WARN("Size of occupancy grid data: %d", occupancy_grid_msg.data.size());
 
-    for (int z = 0; z < width; z++) {
+    for (int z = 0; z < depth; z++) {
         for (int y = 0; y < height; y++) {
-            for (int x = 0; x < depth; x++) {
+            for (int x = 0; x < width; x++) {
+            
                 double wx, wy, wz;
                 octree->getMetricSize(wx, wy, wz);
                 wx = (wx / width) * (x + 0.5) + min_x;
                 wy = (wy / height) * (y + 0.5) + min_y;
                 wz = (wz / depth) * (z + 0.5) + min_z;
                 octomap::OcTreeNode* node = octree->search(wx, wy, wz);
-                
+                //ROS_WARN("test %d %d %d",x,y,z);
                 if (node == NULL) {
                     // Cell is unknown
-                    occupancy_grid_msg.data[z * height * depth + y * depth + x] = 0;
+                    occupancy_grid_msg.data[(z * height * width) + (y * width) + x] = 0;
                 } else if (octree->isNodeOccupied(node)) {
                     // Cell is occupied
-                    occupancy_grid_msg.data[z * height * depth + y * depth + x] = 1;
+                    occupancy_grid_msg.data[(z * height * width) + (y * width) + x] = 1;
                 } else {
                     // Cell is free
-                    occupancy_grid_msg.data[z * height * depth + y * depth + x] = -1;
+                    occupancy_grid_msg.data[(z * height * width) + (y * width) + x] = -1;
                 }
             }
         }
@@ -65,6 +73,8 @@ void octomapCallback(const octomap_msgs::Octomap::ConstPtr& msg) {
 
     // Publish message to topic
     pub.publish(occupancy_grid_msg);
+
+    callbackInProgress = false;
 
     delete octree;
 }
@@ -83,7 +93,7 @@ int main(int argc, char** argv) {
     // Publish the occupancy grid to a topic
     pub = nh.advertise<nav_msgs::OccupancyGrid>("occupancy_grid", 1);
     
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(1);
 
     while (ros::ok()) {
         //ROS_INFO("loop test");

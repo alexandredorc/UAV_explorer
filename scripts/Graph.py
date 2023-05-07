@@ -9,7 +9,7 @@ class Graph:
 
 		self.nodes_ = []
 
-		self.grid_step_size_ = 2 # Grid spacing
+		self.grid_step_size_ = 1 # Grid spacing
 
 		self.create_grid()
 
@@ -76,19 +76,16 @@ class Graph:
 						node_j=self.nodes_[j]
 
 						# Don't create edges to itself
-						if node_i != node_j and node_j is not None:
+						if node_j is not None:
 							# Check if the nodes are close to each other
 							distance = node_i.distance_to(node_j)
 							
-							if distance < distance_threshold:
+							# Check edge is collision free
+							if node_i.is_connected(self.map_.map, node_j):
 								
-								# Check edge is collision free
-								if node_i.is_connected(self.map_.map, node_j):
-									
-									
-									# Create the edge
-									node_i.neighbours.append(node_j)
-									node_i.neighbour_costs.append(distance)
+								# Create the edge
+								node_i.neighbours.append(node_j)
+								node_i.neighbour_costs.append(distance)
 				#print(count, "of", len(self.nodes_), len(node_i.neighbours), node_i.x, node_i.y, node_i.z)
 			count += 1
 			#rospy.logerr(count)
@@ -106,10 +103,11 @@ class Graph:
 		for i in range(len(self.nodes_)):
 			if self.nodes_[i] is not None:
 				newdist=(self.nodes_[i].x-xyz[0])**2+(self.nodes_[i].y-xyz[1])**2+(self.nodes_[i].z-xyz[2])**2
-				
+				#print(self.nodes_[i].x,self.nodes_[i].y,self.nodes_[i].z,newdist,i)
 				if best_dist>newdist:
 					best_dist=newdist
 					best_index=i
 				# you can remove this line after you have filled in the above code
-				#print(self.nodes_[i].x,self.nodes_[i].y,self.nodes_[i].z)
+		
+		print(best_dist)
 		return best_index

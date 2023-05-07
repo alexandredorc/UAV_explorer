@@ -2,6 +2,7 @@
 import rospy
 import numpy as np
 from nav_msgs.msg import OccupancyGrid
+from std_msgs.msg import Float32MultiArray
 
 class Cluster:
 	def __init__(self,grid_front,width,height,depth):
@@ -26,6 +27,7 @@ class Cluster:
 							
 							self.get_frontier([pos[0]+i,pos[1]+j,pos[2]+k],count)
 
+
 def generate_cluster(width,height,depth,grid_front):
 	clusters=[]
 	for x in range(width):
@@ -40,14 +42,22 @@ def generate_cluster(width,height,depth,grid_front):
 
 						clusters.append(clu)
 						front_arr=np.array(clu.element_frontier)
-						clu.center=np.average(front_arr,axis=0)
-						frt_min=np.amin(front_arr,axis=0)
-						frt_max=np.amax(front_arr,axis=0)
-						print("test")
-						print(np.shape(front_arr))
-						print(clu.center)
-						print(frt_max-frt_min+np.array([1,1,1]))
+						clu.center=np.average(front_arr,axis=0).astype(np.float32)
 					
+						clu.frt_min=np.amin(front_arr,axis=0).astype(np.float32)
+						clu.frt_max=np.amax(front_arr,axis=0).astype(np.float32)
+	return clusters
+
+def format_front_msg(clusters):
+	frontiers_info=[]
+	for clust in clusters:
+		frontiers_info+=list(clust.center)+list(clust.frt_min)+list(clust.frt_max)+[len(clust.element_frontier)]
+
+	print(len(clusters))
+	#rospy.loginfo(frontiers_info)
+	msg=Float32MultiArray()
+	msg.data=frontiers_info
+	return msg
 				
 def octomap_grid_callback(msg):
 	arr=np.array(msg.data)
@@ -57,9 +67,10 @@ def octomap_grid_callback(msg):
 	new_occ=np.reshape(arr,(width,height,depth))
 	grid_front=np.full((width,height,depth), False)
 	count=0
-	for z in range(depth):
+
+	for x in range(width):
 		for y in range(height):
-			for x in range(depth):
+			for z in range(depth):
 				
 				if new_occ[x,y,z]==-1:
 					
@@ -77,12 +88,11 @@ def octomap_grid_callback(msg):
 					if res:
 						count+=1
 						grid_front[x,y,z]=True
-
 					
-	#print(grid_front)
-											
 	rospy.loginfo(count)
-	generate_cluster(width,height,depth,grid_front)
+	clusters=generate_cluster(width,height,depth,grid_front)
+	msg=format_front_msg(clusters)
+	pub.publish(msg)
 
 
 
@@ -94,7 +104,7 @@ if __name__ == '__main__':
 	sub = rospy.Subscriber('occupancy_grid', OccupancyGrid, octomap_grid_callback)
 
 	# Publish the occupancy grid to a topic
-	pub = rospy.Publisher('frontier', OccupancyGrid, queue_size=1)
+	pub = rospy.Publisher('/frontier_info', Float32MultiArray, queue_size=1)
 
 	loop_rate = rospy.Rate(10)
 

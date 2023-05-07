@@ -173,6 +173,8 @@ target_link_libraries(
 catkin_install_python(PROGRAMS
   scripts/gazebo_pos.py
   scripts/frontier_node.py
+  scripts/path_planner.py
+  scripts/control_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

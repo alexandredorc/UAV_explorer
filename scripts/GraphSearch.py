@@ -13,7 +13,7 @@ class GraphSearch:
 
 		goal=graph.nodes_[self.goal_idx_]
 		start=graph.nodes_[self.start_idx_]
-
+		print(self.goal_idx_,self.start_idx_)	
 		map=self.graph_.map_
 		
 		self.search(self.start_idx_, self.goal_idx_)
@@ -27,7 +27,6 @@ class GraphSearch:
 		# Find a path from nodes_[start_idx] to nodes_[goal_idx]
 		print("id",start_idx, goal_idx)
 
-		
 		# Reset all parents and costs
 		for n in self.graph_.nodes_:
 			if n is not None:
@@ -77,18 +76,9 @@ class GraphSearch:
 				
 				else:
 
-					# Compute the cost of this neighbour node
-					# hint: cost = cost-of-previous-node + cost-of-edge + self.heuristic_weight_ * A*-heuristic-score
-					# hint: implement it without the heuristic-score first. once this is working, add the heuristic score.
-					# hint: neighbour.distance_to() function is likely to be helpful for the heuristic-score
 					cost=  self.graph_.nodes_[node_idx].cost+ neighbour_cost+(self.heuristic_weight_*neighbour.distance_to(self.graph_.nodes_[goal_idx]))
 				
-					# Check if neighbours is already in unvisited set
 					if neighbour.idx in unvisited_set:
-
-						# If the cost is lower than the previous cost for this node
-						# Then update it to the new cost
-						# Also, update the parent pointer to point to the new parent 
 
 						if cost < neighbour.cost :
 							neighbour.parent_node = self.graph_.nodes_[node_idx]
@@ -96,25 +86,15 @@ class GraphSearch:
 
 					else:
 
-						# Add it to the unvisited set
 						unvisited_set.append(neighbour.idx)
-
-						# Initialise the cost and the parent pointer
-						# hint: this will be similar to your answer above
 
 						neighbour.parent_node = self.graph_.nodes_[node_idx]
 						neighbour.cost = cost
 			
-		rospy.logerr("no path Found")
-			# Visualise the current search status in RVIZ
-			#rospy.sleep(0.1) # Pause for easier visualisation
+		rospy.logerr("No path Found!")
 		
 				   
-
 	def get_minimum_cost_node(self, unvisited_set):
-		# Find the node that has the minimum cost
-
-		# There's more efficient ways of doing this...
 		min_cost = 99999999
 		min_idx = None
 		for idx in range(len(unvisited_set)):
@@ -125,8 +105,6 @@ class GraphSearch:
 		return min_idx
 
 	def generate_path(self, goal_idx):
-		# Generate the path by following the parents from the goal back to the start
-
 		path = []
 
 		current = self.graph_.nodes_[goal_idx]
