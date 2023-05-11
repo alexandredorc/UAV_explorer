@@ -7,9 +7,9 @@ from GraphSearch import GraphSearch
 
 class PathPlanning:
 	def __init__(self,current,goal):
-	
-		self.current=current
-		self.goal=goal
+		self.state=False
+		self.goal_coord=goal
+		self.current_coord=current
 
 		self.map=Map()
 
@@ -18,34 +18,42 @@ class PathPlanning:
 
 		self.map.update_map()
 
-		self.goal=self.map.world_to_grid(self.goal[0],self.goal[1],self.goal[2])
-		self.current=self.map.world_to_grid(self.current[0],self.current[1],self.current[2])
+		self.goal=self.map.world_to_grid(goal[0],goal[1],goal[2])
+		self.current=self.map.world_to_grid(current[0],current[1],current[2])
 	
 		
 	def create_path(self):
-		rate = rospy.Rate(5)
+		rate = rospy.Rate(10)
 		self.map.update_map()
 		graph = Graph(self.map)
-		print(self.map.origin_x,self.map.origin_y,self.map.origin_z)
-		
+
+		self.current=self.map.world_to_grid(self.current_coord[0],self.current_coord[1],self.current_coord[2])
 
 		graph_search = GraphSearch(graph, self.current, self.goal)
 
 		for node in graph_search.path_:
-			print(node.x,node.y,node.z)
-			coord=self.map.grid_to_world(node.x,node.y,node.z)
-			
-			rospy.logwarn(coord)
-			publish_pos(publish_pos,coord)
+			print(node.x,node.y,node.z,node.idx)
 
-			rate.sleep()
-		
+			coord=self.map.grid_to_world(node.x,node.y,node.z)
+			if not self.map.is_occupied_now(coord):
+				rospy.logwarn(coord)
+
+				publish_pos(publish_pos,coord)
+
+				rate.sleep()
+			else:
+				print("colision")
+				break
+		self.goal_coord=coord
+		self.state=False
 		rospy.loginfo("finish path")
 
 	def get_goal(self,msg):
-		self.current=self.goal
-		self.goal=[msg.x,msg.y,msg.z]
-		self.create_path()
+		if not self.state:
+			self.state = True
+			self.current_coord=self.goal_coord
+			self.goal=[msg.x,msg.y,msg.z]
+			self.create_path()
 
 		
 def publish_pos(pub,pos):
@@ -62,7 +70,7 @@ if __name__ == '__main__':
 
 		rospy.init_node('path_planner', anonymous=True)
 
-		path_plan=PathPlanning([0,0,0],[0,0,8])
+		path_plan=PathPlanning([0,0,1],[0,0,4])
 
 		rate=rospy.Rate(10)
 
@@ -73,11 +81,10 @@ if __name__ == '__main__':
 
 		rospy.Subscriber("/goal", Point, path_plan.get_goal)
 
-		loop_rate = rospy.Rate(10)
 
 		while not rospy.is_shutdown():
 			rospy.spin()
-			loop_rate.sleep()
+			rate.sleep()
 	except rospy.ROSInterruptException:
 		pass
 

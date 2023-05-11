@@ -9,7 +9,7 @@ class Graph:
 
 		self.nodes_ = []
 
-		self.grid_step_size_ = 1 # Grid spacing
+		self.grid_step_size_ = 2 # Grid spacing
 
 		self.create_grid()
 
@@ -49,11 +49,9 @@ class Graph:
 		# distance_threshold = math.sqrt(2*(self.grid_step_size_*1.01)**2) # Chosen so that diagonals are connected, but not 2 steps away
 		distance_threshold = self.grid_step_size_*1.01 # only 4 connected
 
-		rospy.logerr(len(self.nodes_))
 							
 		arr=np.array(self.nodes_).flatten()
 
-		rospy.logerr(np.shape(arr))
 		self.nodes_=list(arr)
 		neighbours=[]
 		for i in range(-1,2):
@@ -73,19 +71,23 @@ class Graph:
 					j=int(count+(n[0]*depth*height)+(n[1]*depth)+n[2])
 					
 					if j>=0 and j<len(self.nodes_):
-						node_j=self.nodes_[j]
+						if n[2]!=-1 or count%depth!=0:
+							node_j=self.nodes_[j]
 
-						# Don't create edges to itself
-						if node_j is not None:
-							# Check if the nodes are close to each other
-							distance = node_i.distance_to(node_j)
-							
-							# Check edge is collision free
-							if node_i.is_connected(self.map_.map, node_j):
-								
-								# Create the edge
-								node_i.neighbours.append(node_j)
-								node_i.neighbour_costs.append(distance)
+							# Don't create edges to itself
+							if node_j is not None:
+								# Check if the nodes are close to each other
+								distance = node_i.distance_to(node_j)
+								# Check edge is collision free
+								if distance<=distance_threshold:
+									if node_i.is_connected(self.map_, node_j):
+										#print(node_j.x,node_j.y,node_j.z)
+										# Create the edge
+										node_i.neighbours.append(node_j)
+										node_i.neighbour_costs.append(distance)
+									else:
+										pass
+										#print("what")
 				#print(count, "of", len(self.nodes_), len(node_i.neighbours), node_i.x, node_i.y, node_i.z)
 			count += 1
 			#rospy.logerr(count)

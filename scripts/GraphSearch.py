@@ -6,7 +6,7 @@ class GraphSearch:
 	def __init__(self, graph, start_xyz, goal_xyz):
 		self.graph_ = graph
 
-		self.heuristic_weight_ = 1
+		self.heuristic_weight_ = 1.01
 
 		self.start_idx_ = self.graph_.get_closest_node(start_xyz)
 		self.goal_idx_ = self.graph_.get_closest_node(goal_xyz)
@@ -60,10 +60,10 @@ class GraphSearch:
 				rospy.loginfo("Goal found!")
 				return
 			# For each neighbour of the node
-			
+			#print("node")
 			#print(self.graph_.nodes_[node_idx].x,self.graph_.nodes_[node_idx].y,self.graph_.nodes_[node_idx].z)
 			for neighbour_idx in range(len(self.graph_.nodes_[node_idx].neighbours)):
-				#rospy.logwarn("test")
+				
 				# For convenience, extract the neighbour and the edge cost from the arrays
 				neighbour = self.graph_.nodes_[node_idx].neighbours[neighbour_idx]  
 				neighbour_cost = self.graph_.nodes_[node_idx].neighbour_costs[neighbour_idx]
@@ -90,6 +90,8 @@ class GraphSearch:
 
 						neighbour.parent_node = self.graph_.nodes_[node_idx]
 						neighbour.cost = cost
+					#print(neighbour.x,neighbour.y,neighbour.z)
+			
 			
 		rospy.logerr("No path Found!")
 		
@@ -113,6 +115,7 @@ class GraphSearch:
 		while current.parent_node.cost != 0:
 			path.append(current)
 			current=current.parent_node
+		path.append(current)
 		path.append(current.parent_node)
 		final_path=[]
 		for i in range(0,len(path)):

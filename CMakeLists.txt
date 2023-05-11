@@ -141,7 +141,6 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node 
   src/octomap_listener.cpp
-  #src/test.cpp
 )
 
 ## Rename C++ executable without prefix

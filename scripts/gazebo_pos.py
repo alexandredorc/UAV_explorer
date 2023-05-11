@@ -57,7 +57,7 @@ def main():
 
 	rospy.logwarn("start")
 
-	goal=Position([0,0,0.5])
+	goal=Position([0,0,1])
 				
 	rospy.Subscriber("/gazebo_coordinate", Point, goal.update_pose)
 

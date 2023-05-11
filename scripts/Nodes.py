@@ -25,4 +25,32 @@ class Node:
 	def is_connected(self, map, other_node):
 		p1 = [self.x, self.y , self.z]
 		p2 = [other_node.x, other_node.y, other_node.z]
-		return True
+
+
+		dx = p1[0] - p2[0]
+		dy = p1[1] - p2[1]
+		dz = p1[2] - p2[2]
+					
+		l = math.sqrt(dx**2. + dy**2. + dz**2.)
+		if l == 0:
+			return False
+		dx = dx / l
+		dy = dy / l
+		dz = dz / l
+
+		max_steps = int(l)
+		res=False
+		
+		for i in range(max_steps):
+
+			# Get the next pixel
+			x = int(round(p1[0] + dx*i))
+			y = int(round(p1[1] + dy*i))
+			z = int(round(p1[2] + dz*i))
+			
+			# Check for "hit"
+			if map.is_occupied(x, y, z):
+				res= True
+
+		# No hits found
+		return not res

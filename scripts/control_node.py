@@ -27,6 +27,7 @@ class Control:
 		self.nb_front=size/10
 		self.select_frontier()
 		selected_front=self.frontier_info[self.idx_goal]
+		print("select",selected_front)
 		self.goal=[selected_front[0],selected_front[1],selected_front[2]]
 		self.publish_goal()
 		
@@ -36,6 +37,7 @@ class Control:
 		msg_point.x=round(self.goal[0])
 		msg_point.y=round(self.goal[1])
 		msg_point.z=round(self.goal[2])
+		print(self.goal)
 		self.goal_pub.publish(msg_point)
 		
 
@@ -45,8 +47,6 @@ if __name__ == '__main__':
 		rospy.init_node('control_node', anonymous=True)
 
 		control=Control([])
-		control.goal=[0,0,2]
-		control.publish_goal()
 
 		sub = rospy.Subscriber('frontier_info', Float32MultiArray, control.get_frontier_info)
 		

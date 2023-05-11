@@ -11,7 +11,7 @@ bool callbackInProgress = false;
 
 void octomapCallback(const octomap_msgs::Octomap::ConstPtr& msg) {
     // Convert OctoMap message to octree
-    ROS_INFO("test callback");
+    //ROS_INFO("test callback");
 
     if (callbackInProgress) {
         return;
@@ -32,7 +32,7 @@ void octomapCallback(const octomap_msgs::Octomap::ConstPtr& msg) {
     int width = (max_x - min_x) / resolution;
     int height = (max_y - min_y) / resolution;
     int depth = (max_z - min_z) / resolution;
-    ROS_WARN("Size of occupancy grid data: %d %d %d", width,height,depth);
+    //ROS_WARN("Size of occupancy grid data: %d %d %d", width,height,depth);
     nav_msgs::OccupancyGrid occupancy_grid_msg;
     occupancy_grid_msg.header.frame_id = "map";
     occupancy_grid_msg.info.resolution = resolution;
@@ -44,7 +44,7 @@ void octomapCallback(const octomap_msgs::Octomap::ConstPtr& msg) {
 
     occupancy_grid_msg.data.resize(width * height * depth);
 
-    ROS_WARN("Size of occupancy grid data: %d", occupancy_grid_msg.data.size());
+    //ROS_WARN("Size of occupancy grid data: %d", occupancy_grid_msg.data.size());
 
     for (int z = 0; z < depth; z++) {
         for (int y = 0; y < height; y++) {
