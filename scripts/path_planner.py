@@ -14,26 +14,27 @@ class PathPlanning:
 		self.goal_coord=goal
 		self.current_coord=current
 		self.steps=0
-		self.map=Map()
+		map_=Map()
+		self.graph = Graph(map_)
+
 		self.run=True
 		while self.map.OG_map is None :
 			rospy.sleep(0.1)
+		
 
-		self.map.update_map()
-
-		self.goal=self.map.world_to_grid(goal[0],goal[1],goal[2])
-		self.current=self.map.world_to_grid(current[0],current[1],current[2])
+		self.graph.map_.update_map()
+		self.goal=self.graph.map_.world_to_grid(goal[0],goal[1],goal[2])
+		self.current=self.graph.map_.world_to_grid(current[0],current[1],current[2])
 
 		rospy.Subscriber("/goal", Point, self.get_goal)
 		
 	def create_path(self):
 		rate = rospy.Rate(10)
-		self.map.update_map()
-		graph = Graph(self.map)
+		self.graph.update_graph()
 
-		self.current=self.map.world_to_grid(self.current_coord[0],self.current_coord[1],self.current_coord[2])
+		self.current=self.graph.map_.world_to_grid(self.current_coord[0],self.current_coord[1],self.current_coord[2])
 
-		graph_search = GraphSearch(graph, self.current, self.goal)
+		graph_search = GraphSearch(self.graph, self.current, self.goal)
 
 		for node in graph_search.path_:
 			self.steps+=1
@@ -42,8 +43,8 @@ class PathPlanning:
 				break
 			print(node.x,node.y,node.z,node.idx)
 
-			coord=self.map.grid_to_world(node.x,node.y,node.z)
-			if not self.map.is_occupied_now(coord):
+			coord=self.graph.map_.grid_to_world(node.x,node.y,node.z)
+			if not self.graph.map_.is_occupied_now(coord):
 				rospy.logwarn(coord)
 
 				publish_pos(coord)
@@ -101,8 +102,9 @@ def get_fitness(start):
 	rospy.sleep(0.5)
 	clear_map()
 	path_plan=PathPlanning(start,[start[0],start[0],start[0]+3])
-	print('test')
-	while path_plan.map.OG_map is None:
+
+	
+	while path_plan.graph.map_.OG_map is None:
 		rate.sleep()
 	publish_genes
 	path_plan.create_path()

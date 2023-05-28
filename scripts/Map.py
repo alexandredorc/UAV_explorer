@@ -5,10 +5,6 @@ from nav_msgs.msg import OccupancyGrid
 class Map:
 	def __init__(self):
 
-		## Extract the image from a file
-		# put the subscribed grid
-
-
 		self.min_x_ = 0
 		self.min_y_ = 0
 		self.min_z_ = 0

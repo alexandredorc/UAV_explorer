@@ -93,7 +93,9 @@ class Graph:
 			#rospy.logerr(count)
 				
 		
-
+	def update_graph(self):
+    	grid=self.map_
+    	for 
 
 	def get_closest_node(self, xyz):
 		# input: xy is a point in the form of an array, such that x=xy[0] and y=xy[1]. 
