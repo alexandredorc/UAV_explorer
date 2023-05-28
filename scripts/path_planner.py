@@ -4,15 +4,18 @@ from geometry_msgs.msg import Point
 from Map import Map
 from Graph import Graph
 from GraphSearch import GraphSearch
+from Genetics import Training
+from std_srvs.srv import Empty
+from std_msgs.msg import Float32MultiArray
 
 class PathPlanning:
 	def __init__(self,current,goal):
 		self.state=False
 		self.goal_coord=goal
 		self.current_coord=current
-
+		self.steps=0
 		self.map=Map()
-
+		self.run=True
 		while self.map.OG_map is None :
 			rospy.sleep(0.1)
 
@@ -20,6 +23,8 @@ class PathPlanning:
 
 		self.goal=self.map.world_to_grid(goal[0],goal[1],goal[2])
 		self.current=self.map.world_to_grid(current[0],current[1],current[2])
+
+		rospy.Subscriber("/goal", Point, self.get_goal)
 	
 		
 	def create_path(self):
@@ -32,6 +37,10 @@ class PathPlanning:
 		graph_search = GraphSearch(graph, self.current, self.goal)
 
 		for node in graph_search.path_:
+			self.step+=1
+			if self.step>=200:
+				self.run=False
+				break
 			print(node.x,node.y,node.z,node.idx)
 
 			coord=self.map.grid_to_world(node.x,node.y,node.z)
@@ -56,30 +65,74 @@ class PathPlanning:
 			self.create_path()
 
 		
-def publish_pos(pub,pos):
+def publish_pos(pos):
 	msg_point=Point()
 	msg_point.x=pos[0]
 	msg_point.y=pos[1]
 	msg_point.z=pos[2]
 	pos_pub.publish(msg_point)
-		
+
+def doTraining(train):
+	train.current_gen.initial_gen()
+	train.start_session_to_json()
+	while(True):
+		print(train.current_gen_num)
+		train.current_gen=get_fitness_gen(train.current_gen)
+		train.write_data_to_json()
+		if train.stop_condition():
+			break
+		train.nextGeneration()	
+
+def get_fitness_gen(gen):
+	gen.global_fitness=0
+	for i in range(gen.nb_indi):
+		gen.individuals[i].fitness=get_fitness(gen.individuals[i])
+		gen.global_fitness+= gen.individuals[i].fitness
+	gen.global_fitness/=gen.nb_indi
+
+def clear_map():
+    rospy.wait_for_service('/octomap_server/clear')
+    try:
+        clear_service = rospy.ServiceProxy('/octomap_server/clear', Empty)
+        response = clear_service()
+        if response.success:
+            rospy.loginfo("Octomap cleared successfully")
+        else:
+            rospy.logwarn("Failed to clear octomap")
+    except rospy.ServiceException as e:
+        rospy.logerr("Service call failed: " + str(e))
+
+def get_fitness(indi,start):
+    
+	publish_pos(start)
+	clear_map()
+	path_plan=PathPlanning(start,[start[0],start[0],start[0]+3])
+	
+	while path_plan.map.OG_map is None:
+		rate.sleep()
+
+	path_plan.create_path()
+	while(path_plan.run):
+		pass
+	fitness=path_plan.steps
+	return fitness
+    	
+
+	
+    
 
 if __name__ == '__main__':
 	try:
+		train=Training()
+		doTraining(train)
+		global pos_pub 
 		pos_pub = rospy.Publisher('/gazebo_coordinate', Point, queue_size=10)
+		pos_gen = rospy.Publisher('/current_genes', Float32MultiArray, queue_size=10)
+		rospy.init_node('training', anonymous=True)
 
-		rospy.init_node('path_planner', anonymous=True)
-
-		path_plan=PathPlanning([0,0,1],[0,0,4])
 
 		rate=rospy.Rate(10)
 
-		while path_plan.map.OG_map is None:
-			rate.sleep()
-
-		path_plan.create_path()
-
-		rospy.Subscriber("/goal", Point, path_plan.get_goal)
 
 
 		while not rospy.is_shutdown():
