@@ -40,7 +40,7 @@ def generate_cluster(width,height,depth,grid_front):
 					clu=Cluster(grid_front,width,height,depth)
 					clu.get_frontier([x,y,z],0)
 					grid_front=clu.grid_front
-					if (len(clu.element_frontier)>=9):
+					if (len(clu.element_frontier)>=20) :
 
 						
 						front_arr=np.array(clu.element_frontier)
@@ -49,7 +49,8 @@ def generate_cluster(width,height,depth,grid_front):
 						clu.center=np.average(front_arr,axis=0)
 					
 						clu.frt_size=clu.frt_max-clu.frt_min
-						clusters.append(clu)
+						if sum(clu.frt_size)>10:
+							clusters.append(clu)
 	return clusters
 
 def format_front_msg(clusters):
@@ -99,7 +100,8 @@ def octomap_grid_callback(msg):
 						grid_front[x,y,z]=True
 						
 
-	"""indices = np.where(grid_front)
+	"""
+	indices = np.where(grid_front)
 
 	# Create a 3D plot
 	fig = plt.figure()
@@ -119,7 +121,8 @@ def octomap_grid_callback(msg):
 	ax.set_zlabel('Z')
 
 	# Show the plot
-	plt.show()	"""
+	plt.show()
+	"""
 
 	#rospy.loginfo(count)
 	clusters=generate_cluster(width,height,depth,grid_front)

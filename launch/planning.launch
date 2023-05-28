@@ -2,6 +2,7 @@
 <launch>
     <node pkg="uav_explorer" type="uav_explorer_node" name="occupancy_grid_node"/>
     <node pkg="uav_explorer" type="frontier_node.py" name="frontier_node"/>
-    <node pkg="uav_explorer" type="path_planner.py" name="path_planner_node"/>
+    <node pkg="uav_explorer" type="control_node.py" name="control_node"/>
+    <node pkg="uav_explorer" type="path_planner.py" name="path_planner_node" output="screen"/>
     
 </launch>

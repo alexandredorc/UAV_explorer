@@ -25,7 +25,6 @@ class PathPlanning:
 		self.current=self.map.world_to_grid(current[0],current[1],current[2])
 
 		rospy.Subscriber("/goal", Point, self.get_goal)
-	
 		
 	def create_path(self):
 		rate = rospy.Rate(10)
@@ -37,8 +36,8 @@ class PathPlanning:
 		graph_search = GraphSearch(graph, self.current, self.goal)
 
 		for node in graph_search.path_:
-			self.step+=1
-			if self.step>=200:
+			self.steps+=1
+			if self.steps>=200:
 				self.run=False
 				break
 			print(node.x,node.y,node.z,node.idx)
@@ -47,7 +46,7 @@ class PathPlanning:
 			if not self.map.is_occupied_now(coord):
 				rospy.logwarn(coord)
 
-				publish_pos(publish_pos,coord)
+				publish_pos(coord)
 
 				rate.sleep()
 			else:
@@ -58,6 +57,7 @@ class PathPlanning:
 		rospy.loginfo("finish path")
 
 	def get_goal(self,msg):
+		rospy.loginfo("get goal")
 		if not self.state:
 			self.state = True
 			self.current_coord=self.goal_coord
@@ -90,33 +90,18 @@ def get_fitness_gen(gen):
 	gen.global_fitness=0
 	for i in range(gen.nb_indi):
 		publish_genes(gen.individuals[i].genes)
-		gen.individuals[i].fitness=get_fitness(gen.individuals[i],start)
+		gen.individuals[i].fitness=get_fitness(start)
 		gen.global_fitness+= gen.individuals[i].fitness
 	gen.global_fitness/=gen.nb_indi
+	return gen
 
-def publish_genes(genes):
-	msg_genes=Float32MultiArray()
-	msg_genes.data=genes
-	genes_pub.publish(msg_genes)
-
-def clear_map():
-    rospy.wait_for_service('/octomap_server/clear')
-    try:
-        clear_service = rospy.ServiceProxy('/octomap_server/clear', Empty)
-        response = clear_service()
-        if response.success:
-            rospy.loginfo("Octomap cleared successfully")
-        else:
-            rospy.logwarn("Failed to clear octomap")
-    except rospy.ServiceException as e:
-        rospy.logerr("Service call failed: " + str(e))
-
-def get_fitness(indi,start):
+def get_fitness(start):
     
 	publish_pos(start)
+	rospy.sleep(0.5)
 	clear_map()
 	path_plan=PathPlanning(start,[start[0],start[0],start[0]+3])
-	
+	print('test')
 	while path_plan.map.OG_map is None:
 		rate.sleep()
 	publish_genes
@@ -127,7 +112,24 @@ def get_fitness(indi,start):
 	return fitness
     	
 
-	
+
+def publish_genes(genes):
+	msg_genes=Float32MultiArray()
+	msg_genes.data=genes
+	genes_pub.publish(msg_genes)
+
+def clear_map():
+	rospy.wait_for_service('/octomap_server/reset')
+	try:
+		clear_service = rospy.ServiceProxy('/octomap_server/reset', Empty)
+		response = clear_service()
+		print(response)
+	except rospy.ServiceException as e:
+		rospy.logerr("Service call failed: " + str(e))
+
+	print('clear map')
+
+
     
 
 if __name__ == '__main__':
@@ -135,9 +137,11 @@ if __name__ == '__main__':
 
 		pos_pub = rospy.Publisher('/gazebo_coordinate', Point, queue_size=10)
 		genes_pub = rospy.Publisher('/current_genes', Float32MultiArray, queue_size=10)
+	
 		rospy.init_node('training', anonymous=True)
-
+		rospy.loginfo("training initalization")
 		train=Training()
+		rospy.loginfo("training start")
 		doTraining(train)
 		
 		rate=rospy.Rate(10)

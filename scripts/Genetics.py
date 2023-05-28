@@ -214,5 +214,5 @@ class Training:
         with open(file_path, 'w') as file:
             json.dump(data, file, indent=4)
         
-        print(f"Data successfully written to file")
+        print("Data successfully written to file")
 
