@@ -72,6 +72,8 @@ def publish_pos(pos):
 	msg_point.z=pos[2]
 	pos_pub.publish(msg_point)
 
+
+
 def doTraining(train):
 	train.current_gen.initial_gen()
 	train.start_session_to_json()
@@ -84,11 +86,18 @@ def doTraining(train):
 		train.nextGeneration()	
 
 def get_fitness_gen(gen):
+	start=[0,0,1]
 	gen.global_fitness=0
 	for i in range(gen.nb_indi):
-		gen.individuals[i].fitness=get_fitness(gen.individuals[i])
+		publish_genes(gen.individuals[i].genes)
+		gen.individuals[i].fitness=get_fitness(gen.individuals[i],start)
 		gen.global_fitness+= gen.individuals[i].fitness
 	gen.global_fitness/=gen.nb_indi
+
+def publish_genes(genes):
+	msg_genes=Float32MultiArray()
+	msg_genes.data=genes
+	genes_pub.publish(msg_genes)
 
 def clear_map():
     rospy.wait_for_service('/octomap_server/clear')
@@ -110,7 +119,7 @@ def get_fitness(indi,start):
 	
 	while path_plan.map.OG_map is None:
 		rate.sleep()
-
+	publish_genes
 	path_plan.create_path()
 	while(path_plan.run):
 		pass
@@ -123,14 +132,14 @@ def get_fitness(indi,start):
 
 if __name__ == '__main__':
 	try:
-		train=Training()
-		doTraining(train)
-		global pos_pub 
+
 		pos_pub = rospy.Publisher('/gazebo_coordinate', Point, queue_size=10)
-		pos_gen = rospy.Publisher('/current_genes', Float32MultiArray, queue_size=10)
+		genes_pub = rospy.Publisher('/current_genes', Float32MultiArray, queue_size=10)
 		rospy.init_node('training', anonymous=True)
 
-
+		train=Training()
+		doTraining(train)
+		
 		rate=rospy.Rate(10)
 
 
