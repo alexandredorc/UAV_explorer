@@ -5,12 +5,12 @@ from nav_msgs.msg import OccupancyGrid
 class Map:
 	def __init__(self):
 
-		self.min_x_ = 0
-		self.min_y_ = 0
-		self.min_z_ = 0
-		self.max_x_ = 1
-		self.max_y_ = 1
-		self.max_z_ = 1
+		self.min_x_ = -50
+		self.min_y_ = -50
+		self.min_z_ = -20
+		self.max_x_ = 50
+		self.max_y_ = 50
+		self.max_z_ = 20
 
 		self.sub_map = rospy.Subscriber('occupancy_grid', OccupancyGrid, self.callback_occupancy_grid)
 
@@ -39,9 +39,6 @@ class Map:
 		self.origin_y=self.OG_origin_y
 		self.origin_z=self.OG_origin_z
 		self.resolution=self.OG_resolution
-		self.max_x_ = self.shape[0]
-		self.max_y_ = self.shape[1]
-		self.max_z_ = self.shape[2]
 
 	def world_to_grid(self, x, y, z):
 		

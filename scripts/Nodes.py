@@ -1,7 +1,7 @@
 import math
 
 class Node:
-	def __init__(self, x, y, z, idx):
+	def __init__(self, x, y, z, idx, occupied):
 
 		# Index of the node in the graph
 		self.idx = idx
@@ -18,6 +18,7 @@ class Node:
 		# Search variables
 		self.cost = 9999999 # A large number
 		self.parent_node = None # Invalid parent
+		self.occupied = occupied
 
 	def distance_to(self, other_node):
 		return math.sqrt((self.x-other_node.x)**2 + (self.y-other_node.y)**2 + (self.z-other_node.z)**2)

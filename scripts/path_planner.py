@@ -11,8 +11,7 @@ from std_msgs.msg import Float32MultiArray
 class PathPlanning:
 	def __init__(self,current,goal):
 		self.state=False
-		self.goal_coord=goal
-		self.current_coord=current
+
 		self.steps=0
 		map_=Map()
 		self.graph = Graph(map_)
@@ -23,16 +22,12 @@ class PathPlanning:
 		
 
 		self.graph.map_.update_map()
-		self.goal=self.graph.map_.world_to_grid(goal[0],goal[1],goal[2])
-		self.current=self.graph.map_.world_to_grid(current[0],current[1],current[2])
 
 		rospy.Subscriber("/goal", Point, self.get_goal)
 		
 	def create_path(self):
 		rate = rospy.Rate(10)
 		self.graph.update_graph()
-
-		self.current=self.graph.map_.world_to_grid(self.current_coord[0],self.current_coord[1],self.current_coord[2])
 
 		graph_search = GraphSearch(self.graph, self.current, self.goal)
 
@@ -43,7 +38,7 @@ class PathPlanning:
 				break
 			print(node.x,node.y,node.z,node.idx)
 
-			coord=self.graph.map_.grid_to_world(node.x,node.y,node.z)
+			coord=[node.x,node.y,node.z]
 			if not self.graph.map_.is_occupied_now(coord):
 				rospy.logwarn(coord)
 
@@ -53,7 +48,7 @@ class PathPlanning:
 			else:
 				print("colision")
 				break
-		self.goal_coord=coord
+		
 		self.state=False
 		rospy.loginfo("finish path")
 
@@ -61,19 +56,16 @@ class PathPlanning:
 		rospy.loginfo("get goal")
 		if not self.state:
 			self.state = True
-			self.current_coord=self.goal_coord
-			self.goal=[msg.x,msg.y,msg.z]
+			self.current=self.goal
+			self.graph.map_.grid_to_world(msg.x,msg.y,msg.z)
 			self.create_path()
 
-		
 def publish_pos(pos):
 	msg_point=Point()
 	msg_point.x=pos[0]
 	msg_point.y=pos[1]
 	msg_point.z=pos[2]
 	pos_pub.publish(msg_point)
-
-
 
 def doTraining(train):
 	train.current_gen.initial_gen()
@@ -87,7 +79,7 @@ def doTraining(train):
 		train.nextGeneration()	
 
 def get_fitness_gen(gen):
-	start=[0,0,1]
+	start=[0,0,0.5]
 	gen.global_fitness=0
 	for i in range(gen.nb_indi):
 		publish_genes(gen.individuals[i].genes)
